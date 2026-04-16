@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -13,7 +14,7 @@ export default function ProductCard({ product }: any) {
       ([entry]) => {
         if (entry.isIntersecting) setVisible(true);
       },
-      { rootMargin: "200px" }
+      { rootMargin: "400px" } // Increased margin for smoother appearance
     );
 
     if (ref.current) obs.observe(ref.current);
@@ -21,23 +22,45 @@ export default function ProductCard({ product }: any) {
   }, []);
 
   return (
-    <Link href={`/product/${product.id}`}>
-      <div ref={ref} className="border rounded-xl p-3 shadow-sm">
-        {visible && !error ? (
-          <img
-            src={product.images[0]}
-            onError={() => setError(true)}
-            className="h-40 w-full object-cover rounded"
-          />
-        ) : (
-          <div className="h-40 bg-gray-200 rounded" />
-        )}
+    // REQUIREMENT: scroll={false} prevents Next.js from jumping to top
+    <Link href={`/product/${product.id}`} scroll={false}>
+      <div 
+        ref={ref} 
+        className="border rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow bg-white min-h-[320px]"
+      >
+        {/* FIXED ASPECT RATIO: Prevents layout shift when image loads */}
+        <div className="relative w-full h-60 bg-gray-100 rounded overflow-hidden">
+          {visible && !error ? (
+            <Image
+              src={product.images[0]}
+              alt={product.title}
+              onError={() => setError(true)}
+              className="h-full w-full object-contain"
+              loading="lazy"
+              width={500}
+              height={500}
+            />
+          ) : (
+            <div className="h-full w-full bg-gray-200 animate-pulse" />
+          )}
+        </div>
 
-        <h2 className="line-clamp-2 mt-2">{product.title}</h2>
-        <p className="font-semibold">
-          ₹{product.price.toLocaleString()}
-        </p>
-        <p>⭐ {product.rating}</p>
+        <div className="mt-3 space-y-1">
+          <h2 className="line-clamp-2 text-xl font-medium text-gray-800 h-10">
+            {product.title}
+          </h2>
+          <p className="line-clamp-2 text-sm font-medium text-gray-800 h-10">
+            {product.description}
+          </p>
+          <div className="flex items-center justify-between mt-2">
+            <p className="font-bold text-lg text-blue-600">
+              ₹{product.price.toLocaleString()}
+            </p>
+            <div className="flex items-center text-sm text-gray-500">
+              <span>⭐ {product.rating}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </Link>
   );
